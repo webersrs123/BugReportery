@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BugReportery — мастерская баг-репортов</title>
+    <title>BugReportery — чистый инструмент</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 </head>
@@ -14,8 +14,6 @@
             <nav>
                 <a href="#" class="active">Создать репорт</a>
                 <a href="#" id="showReportsLink">Сохранённые</a>
-                <a href="#" id="loginBtn">Вход</a>
-                <a href="#" id="registerBtn">Регистрация</a>
             </nav>
         </div>
     </header>
@@ -147,44 +145,19 @@
         </div>
     </main>
 
-    <footer>
-        <div class="container footer-content">
-            <p>BugReportery — инструмент для документирования дефектов</p>
-            <p>© 2026 BugReportery. MIT License. Использует <a href="https://html2canvas.hertzen.com/" target="_blank">html2canvas</a> и <a href="https://github.com/parallax/jsPDF" target="_blank">jsPDF</a>.</p>
-            <p>Контакты: tk@qatest.tech</p>
-        </div>
-    </footer>
-
-    <!-- Модальные окна регистрации и входа -->
-    <div id="loginModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%,0); background:white; padding:20px; border:1px solid #ccc; z-index:100; width:300px; border-radius:8px;">
-        <h3>Вход</h3>
-        <input type="email" id="loginEmail" placeholder="Email" style="width:100%; margin-bottom:10px;"><br>
-        <input type="password" id="loginPassword" placeholder="Пароль" style="width:100%; margin-bottom:10px;"><br>
-        <button id="loginSubmit">Войти</button>
-        <button id="closeLogin">Закрыть</button>
-        <div id="loginMessage" style="margin-top:10px; color:red;"></div>
+        <<footer>
+    <div class="container footer-content">
+        <p>BugReportery — инструмент для документирования дефектов</p>
+        <p>© 2026 BugReportery. MIT License. Использует <a href="https://html2canvas.hertzen.com/" target="_blank">html2canvas</a> и <a href="https://github.com/parallax/jsPDF" target="_blank">jsPDF</a>.</p>
+        <p>Контакты: tk@qatest.tech</p>
     </div>
+</footer>
 
-    <div id="registerModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%,0); background:white; padding:20px; border:1px solid #ccc; z-index:100; width:300px; border-radius:8px;">
-        <h3>Регистрация</h3>
-        <input type="text" id="regUsername" placeholder="Имя пользователя" style="width:100%; margin-bottom:10px;"><br>
-        <input type="email" id="regEmail" placeholder="Email" style="width:100%; margin-bottom:10px;"><br>
-        <input type="password" id="regPassword" placeholder="Пароль" style="width:100%; margin-bottom:10px;"><br>
-        <button id="registerSubmit">Зарегистрироваться</button>
-        <button id="closeRegister">Закрыть</button>
-        <div id="registerMessage" style="margin-top:10px; color:red;"></div>
-    </div>
-
-    <!-- Подключаем библиотеки -->
+    <!-- Подключаем html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Данные из Supabase (замените на свои, если нужно)
-        const SUPABASE_URL = 'https://qfurbgyuahfrwsrpyzzy.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'sb_publishable_HlkmY177rbdacKTJGOleZQ_PB8Sk7Cu';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="js/form.js"></script>
+    <!-- Наш скрипт -->
     <script src="js/form.js"></script>
 </body>
 </html>
