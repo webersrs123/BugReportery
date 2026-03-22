@@ -29,3 +29,5 @@ MIT
 
 - [html2canvas](https://html2canvas.hertzen.com/) — лицензия MIT, © Niklas von Hertzen
 - [jsPDF](https://github.com/parallax/jsPDF) — лицензия MIT, © James Hall, Parallax
+
+Подробнее об использованных библиотеках см. [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md)
