@@ -126,19 +126,18 @@ if (registerSubmit) {
             });
 
             if (error) {
-                console.error('SignUp error:', error);
-                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + error.message;
-            } else {
-                console.log('SignUp success:', data);
-                if (msgDiv) msgDiv.innerText = 'Регистрация успешна!';
-                setTimeout(() => {
-                    if (registerModal) registerModal.style.display = 'none';
-                }, 2000);
-            }
-        } catch (e) {
-            console.error('SignUp exception:', e);
-            if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
-        }
+    console.error('SignUp error:', error);
+    // Переводим стандартные ошибки Supabase
+    let errorMessage = error.message;
+    if (error.message.includes('User already registered')) {
+        errorMessage = 'Пользователь с таким email уже существует';
+    } else if (error.message.includes('Invalid email')) {
+        errorMessage = 'Некорректный email';
+    } else if (error.message.includes('Password should be')) {
+        errorMessage = 'Пароль слишком простой (минимум 6 символов)';
+    }
+    if (msgDiv) msgDiv.innerText = 'Ошибка: ' + errorMessage;
+}
     });
 }
     // Вход
