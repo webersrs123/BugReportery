@@ -1,5 +1,5 @@
 // form.js
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const form = document.getElementById('bugForm');
     const saveBtn = document.getElementById('saveBtn');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
@@ -23,6 +23,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (document.getElementById('closeRegister')) {
         document.getElementById('closeRegister').addEventListener('click', () => registerModal.style.display = 'none');
+    }
+
+    // Получение текущего пользователя
+    async function getCurrentUser() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) return null;
+        return user;
     }
 
     // Регистрация
@@ -72,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 msgDiv.innerText = 'Вход выполнен';
                 loginModal.style.display = 'none';
-                updateUIForAuth();
+                await updateUIForAuth();
             }
         });
     }
@@ -80,12 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Выход
     async function logout() {
         await supabase.auth.signOut();
-        updateUIForAuth();
+        await updateUIForAuth();
         showMessage('Вы вышли', 'success');
     }
 
-    function updateUIForAuth() {
-        const user = supabase.auth.user();
+    async function updateUIForAuth() {
+        const user = await getCurrentUser();
         const nav = document.querySelector('nav');
         if (user) {
             if (loginBtn) loginBtn.style.display = 'none';
@@ -107,19 +114,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Следим за изменением состояния аутентификации
-    supabase.auth.onAuthStateChange((event, session) => {
-        updateUIForAuth();
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        await updateUIForAuth();
         if (event === 'SIGNED_IN') {
             showMessage('Добро пожаловать!', 'success');
         }
     });
 
     // Инициализация UI
-    updateUIForAuth();
+    await updateUIForAuth();
 
     // ==== Сохранение репорта ====
     async function saveCurrentReport() {
-        const user = supabase.auth.user();
+        const user = await getCurrentUser();
         if (!user) {
             showMessage('Пожалуйста, войдите, чтобы сохранить репорт', 'error');
             return false;
@@ -138,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const reportData = {
+            user_id: user.id,  // важно: добавляем user_id для RLS
             bug_id: bugId,
             title: title,
             project: document.getElementById('project').value.trim(),
@@ -182,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==== Отображение списка репортов ====
     async function displayReports() {
-        const user = supabase.auth.user();
+        const user = await getCurrentUser();
         if (!user) {
             reportsListDiv.innerHTML = '<p>Войдите, чтобы видеть свои репорты.</p>';
             return;
@@ -236,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Просмотр репорта (заполнение формы)
     async function viewReport(id) {
-        const user = supabase.auth.user();
+        const user = await getCurrentUser();
         if (!user) return;
 
         const { data: report, error } = await supabase
