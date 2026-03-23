@@ -105,9 +105,21 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 console.log('Calling signUp...');
                 const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: { data: { username: username } }
+    email: email,
+    password: password,
+    options: { data: { username: username } }
+});
+
+if (error) {
+    msgDiv.innerText = error.message;
+} else if (data.user && data.user.identities && data.user.identities.length === 0) {
+    // Email уже зарегистрирован!
+    msgDiv.innerText = 'Пользователь с таким email уже существует';
+} else {
+    // Успешная регистрация
+    msgDiv.innerText = 'Регистрация успешна! Проверьте email для подтверждения.';
+    setTimeout(() => registerModal.style.display = 'none', 2000);
+}
                 });
 
                 if (error) {
