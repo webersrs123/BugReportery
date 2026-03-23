@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!emailInput || !passwordInput) {
                 console.error('Login inputs not found!');
                 return;
-            }
+            })
 
             const email = emailInput.value.trim();
             const password = passwordInput.value;
