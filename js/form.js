@@ -5,8 +5,13 @@ const SUPABASE_URL = 'https://qfurbgyuahfrwsrpyzzy.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_HlkmY177rbdacKTJGOleZQ_PB8Sk7Cu';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Проверка инициализации
+console.log('Supabase initialized:', supabase);
+
 // ==== Основной код ====
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM loaded, initializing app...');
+    
     const form = document.getElementById('bugForm');
     const saveBtn = document.getElementById('saveBtn');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
@@ -22,71 +27,144 @@ document.addEventListener('DOMContentLoaded', async function() {
     const loginBtn = document.getElementById('loginBtn');
     const registerBtn = document.getElementById('registerBtn');
 
-    if (loginBtn) loginBtn.addEventListener('click', (e) => { e.preventDefault(); loginModal.style.display = 'block'; });
-    if (registerBtn) registerBtn.addEventListener('click', (e) => { e.preventDefault(); registerModal.style.display = 'block'; });
+    // Проверка элементов модальных окон
+    console.log('Login modal:', loginModal);
+    console.log('Register modal:', registerModal);
+    console.log('Login btn:', loginBtn);
+    console.log('Register btn:', registerBtn);
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            if (loginModal) loginModal.style.display = 'block'; 
+        });
+    }
+    
+    if (registerBtn) {
+        registerBtn.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            if (registerModal) registerModal.style.display = 'block'; 
+        });
+    }
 
     if (document.getElementById('closeLogin')) {
-        document.getElementById('closeLogin').addEventListener('click', () => loginModal.style.display = 'none');
+        document.getElementById('closeLogin').addEventListener('click', () => {
+            if (loginModal) loginModal.style.display = 'none';
+        });
     }
+    
     if (document.getElementById('closeRegister')) {
-        document.getElementById('closeRegister').addEventListener('click', () => registerModal.style.display = 'none');
+        document.getElementById('closeRegister').addEventListener('click', () => {
+            if (registerModal) registerModal.style.display = 'none';
+        });
     }
 
     // Получение текущего пользователя
     async function getCurrentUser() {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) return null;
-        return user;
+        try {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (error) {
+                console.error('getUser error:', error);
+                return null;
+            }
+            return user;
+        } catch (e) {
+            console.error('getCurrentUser exception:', e);
+            return null;
+        }
     }
 
     // Регистрация
-    if (document.getElementById('registerSubmit')) {
-        document.getElementById('registerSubmit').addEventListener('click', async () => {
-            const username = document.getElementById('regUsername').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
+    const registerSubmit = document.getElementById('registerSubmit');
+    if (registerSubmit) {
+        console.log('Register submit button found');
+        registerSubmit.addEventListener('click', async () => {
+            console.log('Register clicked');
+            
+            const usernameInput = document.getElementById('regUsername');
+            const emailInput = document.getElementById('regEmail');
+            const passwordInput = document.getElementById('regPassword');
             const msgDiv = document.getElementById('registerMessage');
 
-            if (!username || !email || !password) {
-                msgDiv.innerText = 'Заполните все поля';
+            console.log('Inputs:', { usernameInput, emailInput, passwordInput, msgDiv });
+
+            if (!usernameInput || !emailInput || !passwordInput) {
+                console.error('Register inputs not found!');
                 return;
             }
 
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: { data: { username: username } }
-            });
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            if (error) {
-                msgDiv.innerText = error.message;
-            } else {
-                msgDiv.innerText = 'Регистрация успешна! Проверьте email для подтверждения.';
-                setTimeout(() => registerModal.style.display = 'none', 2000);
+            if (!username || !email || !password) {
+                if (msgDiv) msgDiv.innerText = 'Заполните все поля';
+                return;
+            }
+
+            try {
+                console.log('Calling signUp...');
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: { data: { username: username } }
+                });
+
+                if (error) {
+                    console.error('SignUp error:', error);
+                    if (msgDiv) msgDiv.innerText = error.message;
+                } else {
+                    console.log('SignUp success:', data);
+                    if (msgDiv) msgDiv.innerText = 'Регистрация успешна! Проверьте email для подтверждения.';
+                    setTimeout(() => {
+                        if (registerModal) registerModal.style.display = 'none';
+                    }, 2000);
+                }
+            } catch (e) {
+                console.error('SignUp exception:', e);
+                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
             }
         });
+    } else {
+        console.error('Register submit button NOT found!');
     }
 
     // Вход
-    if (document.getElementById('loginSubmit')) {
-        document.getElementById('loginSubmit').addEventListener('click', async () => {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
+    const loginSubmit = document.getElementById('loginSubmit');
+    if (loginSubmit) {
+        loginSubmit.addEventListener('click', async () => {
+            console.log('Login clicked');
+            
+            const emailInput = document.getElementById('loginEmail');
+            const passwordInput = document.getElementById('loginPassword');
             const msgDiv = document.getElementById('loginMessage');
 
-            if (!email || !password) {
-                msgDiv.innerText = 'Введите email и пароль';
+            if (!emailInput || !passwordInput) {
+                console.error('Login inputs not found!');
                 return;
             }
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            if (error) {
-                msgDiv.innerText = error.message;
-            } else {
-                msgDiv.innerText = 'Вход выполнен';
-                loginModal.style.display = 'none';
-                await updateUIForAuth();
+            if (!email || !password) {
+                if (msgDiv) msgDiv.innerText = 'Введите email и пароль';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    if (msgDiv) msgDiv.innerText = error.message;
+                } else {
+                    if (msgDiv) msgDiv.innerText = 'Вход выполнен';
+                    if (loginModal) loginModal.style.display = 'none';
+                    await updateUIForAuth();
+                }
+            } catch (e) {
+                console.error('Login exception:', e);
+                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
             }
         });
     }
@@ -101,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function updateUIForAuth() {
         const user = await getCurrentUser();
         const nav = document.querySelector('nav');
+        
         if (user) {
             if (loginBtn) loginBtn.style.display = 'none';
             if (registerBtn) registerBtn.style.display = 'none';
@@ -110,7 +189,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 logoutBtn.href = '#';
                 logoutBtn.innerText = 'Выход';
                 logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
-                nav.appendChild(logoutBtn);
+                if (nav) nav.appendChild(logoutBtn);
             }
         } else {
             if (loginBtn) loginBtn.style.display = 'inline';
@@ -121,12 +200,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Следим за изменением состояния аутентификации
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        await updateUIForAuth();
-        if (event === 'SIGNED_IN') {
-            showMessage('Добро пожаловать!', 'success');
-        }
-    });
+    if (supabase && supabase.auth) {
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('Auth state changed:', event);
+            await updateUIForAuth();
+            if (event === 'SIGNED_IN') {
+                showMessage('Добро пожаловать!', 'success');
+            }
+        });
+    } else {
+        console.error('Supabase auth not available!');
+    }
 
     // Инициализация UI
     await updateUIForAuth();
@@ -341,35 +425,45 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // ==== Обработчики событий ====
-    saveBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        saveCurrentReport();
-    });
+    if (saveBtn) {
+        saveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            saveCurrentReport();
+        });
+    }
 
-    exportPdfBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        exportToPDF();
-    });
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportToPDF();
+        });
+    }
 
-    resetBtn.addEventListener('click', () => {
-        form.reset();
-        document.getElementById('severity').value = '';
-        document.getElementById('priority').value = '';
-        document.getElementById('bugType').value = '';
-        document.getElementById('status').value = 'Открыт';
-        document.getElementById('attachments').value = '';
-        showMessage('Форма очищена', 'success');
-    });
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            form.reset();
+            document.getElementById('severity').value = '';
+            document.getElementById('priority').value = '';
+            document.getElementById('bugType').value = '';
+            document.getElementById('status').value = 'Открыт';
+            document.getElementById('attachments').value = '';
+            showMessage('Форма очищена', 'success');
+        });
+    }
 
-    showReportsLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (reportsSection.style.display === 'none') {
-            displayReports();
-            reportsSection.style.display = 'block';
-            showReportsLink.textContent = 'Скрыть список';
-        } else {
-            reportsSection.style.display = 'none';
-            showReportsLink.textContent = 'Сохранённые';
-        }
-    });
+    if (showReportsLink) {
+        showReportsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (reportsSection.style.display === 'none') {
+                displayReports();
+                reportsSection.style.display = 'block';
+                showReportsLink.textContent = 'Скрыть список';
+            } else {
+                reportsSection.style.display = 'none';
+                showReportsLink.textContent = 'Сохранённые';
+            }
+        });
+    }
+    
+    console.log('App initialized successfully!');
 });
