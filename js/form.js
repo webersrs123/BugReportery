@@ -1,14 +1,11 @@
-// ==== Инициализация Supabase ====
+// ==== Инициализация Supabase через ES модуль ====
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 const SUPABASE_URL = 'https://qfurbgyuahfrwsrpyzzy.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_HlkmY177rbdacKTJGOleZQ_PB8Sk7Cu';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Проверяем, не объявлен ли уже supabase глобально
-if (typeof window.supabaseGlobal === 'undefined') {
-    window.supabaseGlobal = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
-const supabase = window.supabaseGlobal;
-
-// form.js
+// ==== Основной код ====
 document.addEventListener('DOMContentLoaded', async function() {
     const form = document.getElementById('bugForm');
     const saveBtn = document.getElementById('saveBtn');
