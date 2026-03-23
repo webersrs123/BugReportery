@@ -1,3 +1,13 @@
+// ==== Инициализация Supabase ====
+const SUPABASE_URL = 'https://qfurbgyuahfrwsrpyzzy.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_HlkmY177rbdacKTJGOleZQ_PB8Sk7Cu';
+
+// Проверяем, не объявлен ли уже supabase глобально
+if (typeof window.supabaseGlobal === 'undefined') {
+    window.supabaseGlobal = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+const supabase = window.supabaseGlobal;
+
 // form.js
 document.addEventListener('DOMContentLoaded', async function() {
     const form = document.getElementById('bugForm');
@@ -63,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Вход
     if (document.getElementById('loginSubmit')) {
         document.getElementById('loginSubmit').addEventListener('click', async () => {
-            const email = document.getElementById('loginUsername').value.trim();
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             const msgDiv = document.getElementById('loginMessage');
 
@@ -145,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         const reportData = {
-            user_id: user.id,  // важно: добавляем user_id для RLS
+            user_id: user.id,
             bug_id: bugId,
             title: title,
             project: document.getElementById('project').value.trim(),
@@ -178,7 +188,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         } else {
             showMessage('Репорт успешно сохранён!', 'success');
             form.reset();
-            // Сброс select'ов
             document.getElementById('severity').value = '';
             document.getElementById('priority').value = '';
             document.getElementById('bugType').value = '';
@@ -298,10 +307,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 3000);
     }
 
-    // ==== Экспорт PDF (оставляем как есть) ====
+    // ==== Экспорт PDF ====
     async function exportToPDF() {
-        // ... ваш существующий код экспорта в PDF (не меняем)
-        // Он работает с текущими данными формы
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const bugId = document.getElementById('bugId').value || 'N/A';
+        const title = document.getElementById('title').value || 'Без названия';
+        
+        doc.setFontSize(16);
+        doc.text(`Bug Report: ${bugId}`, 20, 20);
+        doc.setFontSize(12);
+        doc.text(`Title: ${title}`, 20, 30);
+        doc.text(`Project: ${document.getElementById('project').value || 'N/A'}`, 20, 40);
+        doc.text(`Author: ${document.getElementById('author').value || 'N/A'}`, 20, 50);
+        doc.text(`Severity: ${document.getElementById('severity').value || 'N/A'}`, 20, 60);
+        doc.text(`Priority: ${document.getElementById('priority').value || 'N/A'}`, 20, 70);
+        
+        doc.text('Description:', 20, 90);
+        const description = document.getElementById('description').value || 'N/A';
+        doc.text(doc.splitTextToSize(description, 170), 20, 100);
+        
+        doc.text('Steps to Reproduce:', 20, 130);
+        const steps = document.getElementById('steps').value || 'N/A';
+        doc.text(doc.splitTextToSize(steps, 170), 20, 140);
+        
+        doc.text('Expected Result:', 20, 170);
+        const expected = document.getElementById('expected').value || 'N/A';
+        doc.text(doc.splitTextToSize(expected, 170), 20, 180);
+        
+        doc.text('Actual Result:', 20, 210);
+        const actual = document.getElementById('actual').value || 'N/A';
+        doc.text(doc.splitTextToSize(actual, 170), 20, 220);
+        
+        doc.save(`${bugId}_report.pdf`);
     }
 
     // ==== Обработчики событий ====
