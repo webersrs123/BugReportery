@@ -74,56 +74,70 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // ==== РЕГИСТРАЦИЯ (исправлено) ====
-    const registerSubmit = document.getElementById('registerSubmit');
-    if (registerSubmit) {
-        registerSubmit.addEventListener('click', async () => {
-            const usernameInput = document.getElementById('regUsername');
-            const emailInput = document.getElementById('regEmail');
-            const passwordInput = document.getElementById('regPassword');
-            const msgDiv = document.getElementById('registerMessage');
+// Регистрация
+const registerSubmit = document.getElementById('registerSubmit');
+if (registerSubmit) {
+    registerSubmit.addEventListener('click', async () => {
+        const usernameInput = document.getElementById('regUsername');
+        const emailInput = document.getElementById('regEmail');
+        const passwordInput = document.getElementById('regPassword');
+        const msgDiv = document.getElementById('registerMessage');
 
-            if (!usernameInput || !emailInput || !passwordInput) {
-                console.error('Register inputs not found!');
+        if (!usernameInput || !emailInput || !passwordInput) {
+            console.error('Register inputs not found!');
+            return;
+        }
+
+        const username = usernameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!username || !email || !password) {
+            if (msgDiv) msgDiv.innerText = 'Заполните все поля';
+            return;
+        }
+
+        try {
+            // Проверяем, существует ли email (пробуем войти)
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (!signInError) {
+                // Вошли успешно = email уже есть
+                if (msgDiv) msgDiv.innerText = 'Пользователь с таким email уже существует';
                 return;
             }
 
-            const username = usernameInput.value.trim();
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
+            // Регистрируем нового пользователя
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: { data: { username: username } }
+            });
 
-            if (!username || !email || !password) {
-                if (msgDiv) msgDiv.innerText = 'Заполните все поля';
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: { data: { username: username } }
-                });
-
-                if (error) {
-                    let errorMessage = error.message;
-                    if (error.message === 'User already registered') {
-                        errorMessage = 'Пользователь с таким email уже существует';
-                    }
-                    if (msgDiv) msgDiv.innerText = 'Ошибка: ' + errorMessage;
-                } else {
-                    if (msgDiv) msgDiv.innerText = 'Регистрация успешна!';
-                    setTimeout(() => {
-                        if (registerModal) registerModal.style.display = 'none';
-                    }, 2000);
+            if (error) {
+                // Переводим ошибки на русский
+                let errorMessage = error.message;
+                if (error.message === 'User already registered') {
+                    errorMessage = 'Пользователь с таким email уже существует';
                 }
-            } catch (e) {
-                console.error('Exception:', e);
-                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
+                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + errorMessage;
+            } else {
+                if (msgDiv) msgDiv.innerText = 'Регистрация успешна!';
+                setTimeout(() => {
+                    if (registerModal) registerModal.style.display = 'none';
+                }, 2000);
             }
-        });
-    }
-
-    // ==== ВХОД (исправлено) ====
+        } catch (e) {
+            console.error('Exception:', e);
+            if (msgDiv) msgDiv.innerText = 'Ошибка сети: ' + e.message;
+        }
+    });
+}
+}
+    // Вход
     const loginSubmit = document.getElementById('loginSubmit');
     if (loginSubmit) {
         loginSubmit.addEventListener('click', async () => {
