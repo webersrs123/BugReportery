@@ -101,25 +101,34 @@ if (registerSubmit) {
         }
 
         try {
-            console.log('Calling signUp...');
+            console.log('Checking if email exists...');
+            // Пробуем войти — если успешно, значит email уже есть
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (!signInError) {
+                // Вошли успешно = email уже существует!
+                console.log('Email already exists');
+                if (msgDiv) msgDiv.innerText = 'Пользователь с таким email уже существует';
+                return;
+            }
+
+            // Если не вошли — регистрируем
+            console.log('Email available, registering...');
             const { data, error } = await supabase.auth.signUp({
                 email: email,
                 password: password,
                 options: { 
-                    data: { username: username },
-                    emailRedirectTo: window.location.origin
+                    data: { username: username }
                 }
             });
 
             if (error) {
                 console.error('SignUp error:', error);
                 if (msgDiv) msgDiv.innerText = 'Ошибка: ' + error.message;
-            } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-                // Email уже существует!
-                console.log('Duplicate email detected');
-                if (msgDiv) msgDiv.innerText = 'Пользователь с таким email уже существует';
             } else {
-                // Успешная регистрация
                 console.log('SignUp success:', data);
                 if (msgDiv) msgDiv.innerText = 'Регистрация успешна!';
                 setTimeout(() => {
