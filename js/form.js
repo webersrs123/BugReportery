@@ -136,7 +136,7 @@ if (registerSubmit) {
         }
     });
 }
-
+}
     // Вход
     const loginSubmit = document.getElementById('loginSubmit');
     if (loginSubmit) {
