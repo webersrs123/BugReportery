@@ -77,10 +77,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Регистрация
 const registerSubmit = document.getElementById('registerSubmit');
 if (registerSubmit) {
-    console.log('Register submit button found');
     registerSubmit.addEventListener('click', async () => {
-        console.log('Register clicked');
-        
         const usernameInput = document.getElementById('regUsername');
         const emailInput = document.getElementById('regEmail');
         const passwordInput = document.getElementById('regPassword');
@@ -101,45 +98,45 @@ if (registerSubmit) {
         }
 
         try {
-            console.log('Checking if email exists...');
-            // Пробуем войти — если успешно, значит email уже есть
+            // Проверяем, существует ли email (пробуем войти)
             const { error: signInError } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: password
             });
 
             if (!signInError) {
-                // Вошли успешно = email уже существует!
-                console.log('Email already exists');
+                // Вошли успешно = email уже есть
                 if (msgDiv) msgDiv.innerText = 'Пользователь с таким email уже существует';
                 return;
             }
 
-            // Если не вошли — регистрируем
-            console.log('Email available, registering...');
+            // Регистрируем нового пользователя
             const { data, error } = await supabase.auth.signUp({
                 email: email,
                 password: password,
-                options: { 
-                    data: { username: username }
-                }
+                options: { data: { username: username } }
             });
 
             if (error) {
-    console.error('SignUp error:', error);
-    // Переводим стандартные ошибки Supabase
-    let errorMessage = error.message;
-    if (error.message.includes('User already registered')) {
-        errorMessage = 'Пользователь с таким email уже существует';
-    } else if (error.message.includes('Invalid email')) {
-        errorMessage = 'Некорректный email';
-    } else if (error.message.includes('Password should be')) {
-        errorMessage = 'Пароль слишком простой (минимум 6 символов)';
-    }
-    if (msgDiv) msgDiv.innerText = 'Ошибка: ' + errorMessage;
-}
+                // Переводим ошибки на русский
+                let errorMessage = error.message;
+                if (error.message === 'User already registered') {
+                    errorMessage = 'Пользователь с таким email уже существует';
+                }
+                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + errorMessage;
+            } else {
+                if (msgDiv) msgDiv.innerText = 'Регистрация успешна!';
+                setTimeout(() => {
+                    if (registerModal) registerModal.style.display = 'none';
+                }, 2000);
+            }
+        } catch (e) {
+            console.error('Exception:', e);
+            if (msgDiv) msgDiv.innerText = 'Ошибка сети: ' + e.message;
+        }
     });
 }
+
     // Вход
     const loginSubmit = document.getElementById('loginSubmit');
     if (loginSubmit) {
