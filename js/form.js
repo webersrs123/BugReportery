@@ -74,73 +74,64 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Регистрация
-    const registerSubmit = document.getElementById('registerSubmit');
-    if (registerSubmit) {
-        console.log('Register submit button found');
-        registerSubmit.addEventListener('click', async () => {
-            console.log('Register clicked');
-            
-            const usernameInput = document.getElementById('regUsername');
-            const emailInput = document.getElementById('regEmail');
-            const passwordInput = document.getElementById('regPassword');
-            const msgDiv = document.getElementById('registerMessage');
+// Регистрация
+const registerSubmit = document.getElementById('registerSubmit');
+if (registerSubmit) {
+    console.log('Register submit button found');
+    registerSubmit.addEventListener('click', async () => {
+        console.log('Register clicked');
+        
+        const usernameInput = document.getElementById('regUsername');
+        const emailInput = document.getElementById('regEmail');
+        const passwordInput = document.getElementById('regPassword');
+        const msgDiv = document.getElementById('registerMessage');
 
-            console.log('Inputs:', { usernameInput, emailInput, passwordInput, msgDiv });
+        if (!usernameInput || !emailInput || !passwordInput) {
+            console.error('Register inputs not found!');
+            return;
+        }
 
-            if (!usernameInput || !emailInput || !passwordInput) {
-                console.error('Register inputs not found!');
-                return;
-            }
+        const username = usernameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
 
-            const username = usernameInput.value.trim();
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
+        if (!username || !email || !password) {
+            if (msgDiv) msgDiv.innerText = 'Заполните все поля';
+            return;
+        }
 
-            if (!username || !email || !password) {
-                if (msgDiv) msgDiv.innerText = 'Заполните все поля';
-                return;
-            }
-
-            try {
-                console.log('Calling signUp...');
-                const { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: password,
-    options: { data: { username: username } }
-});
-
-if (error) {
-    msgDiv.innerText = error.message;
-} else if (data.user && data.user.identities && data.user.identities.length === 0) {
-    // Email уже зарегистрирован!
-    msgDiv.innerText = 'Пользователь с таким email уже существует';
-} else {
-    // Успешная регистрация
-    msgDiv.innerText = 'Регистрация успешна! Проверьте email для подтверждения.';
-    setTimeout(() => registerModal.style.display = 'none', 2000);
-}
-                });
-
-                if (error) {
-                    console.error('SignUp error:', error);
-                    if (msgDiv) msgDiv.innerText = error.message;
-                } else {
-                    console.log('SignUp success:', data);
-                    if (msgDiv) msgDiv.innerText = 'Регистрация успешна! Проверьте email для подтверждения.';
-                    setTimeout(() => {
-                        if (registerModal) registerModal.style.display = 'none';
-                    }, 2000);
+        try {
+            console.log('Calling signUp...');
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: { 
+                    data: { username: username },
+                    emailRedirectTo: window.location.origin
                 }
-            } catch (e) {
-                console.error('SignUp exception:', e);
-                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
-            }
-        });
-    } else {
-        console.error('Register submit button NOT found!');
-    }
+            });
 
+            if (error) {
+                console.error('SignUp error:', error);
+                if (msgDiv) msgDiv.innerText = 'Ошибка: ' + error.message;
+            } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+                // Email уже существует!
+                console.log('Duplicate email detected');
+                if (msgDiv) msgDiv.innerText = 'Пользователь с таким email уже существует';
+            } else {
+                // Успешная регистрация
+                console.log('SignUp success:', data);
+                if (msgDiv) msgDiv.innerText = 'Регистрация успешна!';
+                setTimeout(() => {
+                    if (registerModal) registerModal.style.display = 'none';
+                }, 2000);
+            }
+        } catch (e) {
+            console.error('SignUp exception:', e);
+            if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
+        }
+    });
+}
     // Вход
     const loginSubmit = document.getElementById('loginSubmit');
     if (loginSubmit) {
