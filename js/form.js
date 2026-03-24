@@ -3,6 +3,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const SUPABASE_URL = 'https://qfurbgyuahfrwsrpyzzy.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_HlkmY177rbdacKTJGOleZQ_PB8Sk7Cu';
+const ALLOWED_EMAIL_DOMAIN = 'qatest.tech';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Проверка инициализации
@@ -100,6 +101,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (!username || !email || !password) {
                 if (msgDiv) msgDiv.innerText = 'Заполните все поля';
+                return;
+            }
+
+            const emailDomain = email.toLowerCase().split('@')[1];
+            if (emailDomain !== ALLOWED_EMAIL_DOMAIN) {
+                if (msgDiv) msgDiv.innerText = 'Регистрация доступна только для email домена @qatest.tech';
                 return;
             }
 
