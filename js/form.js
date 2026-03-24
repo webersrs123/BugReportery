@@ -62,12 +62,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Получение текущего пользователя
     async function getCurrentUser() {
         try {
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error) {
-                console.error('getUser error:', error);
+            // First read local session state; it is more stable for UI updates.
+            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+            if (!sessionError && sessionData?.session?.user) {
+                return sessionData.session.user;
+            }
+
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+                console.error('getUser error:', userError);
                 return null;
             }
-            return user;
+            return userData?.user ?? null;
         } catch (e) {
             console.error('getCurrentUser exception:', e);
             return null;
@@ -149,13 +155,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-                if (error) {
-                    if (msgDiv) msgDiv.innerText = error.message;
-                } else {
-                    if (msgDiv) msgDiv.innerText = 'Вход выполнен';
-                    if (loginModal) loginModal.style.display = 'none';
-                    await updateUIForAuth();
+                if (error || !data?.session || !data?.user) {
+                    const errorText = error?.message || 'Не удалось создать сессию. Проверьте подтверждение email.';
+                    if (msgDiv) msgDiv.innerText = errorText;
+                    return;
                 }
+
+                if (msgDiv) msgDiv.innerText = 'Вход выполнен';
+                if (loginModal) loginModal.style.display = 'none';
+                await updateUIForAuth();
+                showMessage('Вы авторизованы', 'success');
             } catch (e) {
                 console.error('Login exception:', e);
                 if (msgDiv) msgDiv.innerText = 'Ошибка: ' + e.message;
