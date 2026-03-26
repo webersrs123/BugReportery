@@ -217,7 +217,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (supabase && supabase.auth) {
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state changed:', event);
-            await updateUIForAuth();
+            // Use session payload to avoid relying on getUser()/getSession()
+            // which may throw AuthSessionMissingError in some browser contexts.
+            await updateUIForAuth(session?.user);
             if (event === 'SIGNED_IN') {
                 showMessage('Добро пожаловать!', 'success');
             }
