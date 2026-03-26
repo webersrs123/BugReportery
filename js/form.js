@@ -162,15 +162,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-                if (error || !data?.session || !data?.user) {
-                    const errorText = error?.message || 'Не удалось создать сессию. Проверьте подтверждение email.';
+                if (error) {
+                    const errorText = error?.message || 'Ошибка входа';
                     if (msgDiv) msgDiv.innerText = errorText;
                     return;
                 }
 
+                // Incognito иногда даёт ответ без полного data.session/user, но токены уже получены.
+                // Поэтому закрываем модалку по факту успешного вызова и обновляем UI с тем, что есть.
+                const signedInUser = data?.user || data?.session?.user;
+
                 if (msgDiv) msgDiv.innerText = 'Вход выполнен';
                 if (loginModal) loginModal.style.display = 'none';
-                await updateUIForAuth();
+                await updateUIForAuth(signedInUser);
                 showMessage('Вы авторизованы', 'success');
             } catch (e) {
                 console.error('Login exception:', e);
@@ -186,8 +190,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         showMessage('Вы вышли', 'success');
     }
 
-    async function updateUIForAuth() {
-        const user = await getCurrentUser();
+    async function updateUIForAuth(forceUser) {
+        const user = forceUser ?? await getCurrentUser();
         const nav = document.querySelector('nav');
         
         if (user) {
