@@ -186,12 +186,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Выход
     async function logout() {
         await supabase.auth.signOut();
-        await updateUIForAuth();
+        // After signOut we explicitly force "logged out" state for the header.
+        await updateUIForAuth(null);
         showMessage('Вы вышли', 'success');
     }
 
     async function updateUIForAuth(forceUser) {
-        const user = forceUser ?? await getCurrentUser();
+        // forceUser: undefined => read from supabase, null => force logged-out state
+        const user = (typeof forceUser === 'undefined') ? await getCurrentUser() : forceUser;
         const nav = document.querySelector('nav');
         
         if (user) {
@@ -219,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Auth state changed:', event);
             // Use session payload to avoid relying on getUser()/getSession()
             // which may throw AuthSessionMissingError in some browser contexts.
-            await updateUIForAuth(session?.user);
+            await updateUIForAuth(session?.user ?? null);
             if (event === 'SIGNED_IN') {
                 showMessage('Добро пожаловать!', 'success');
             }
