@@ -219,11 +219,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (supabase && supabase.auth) {
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state changed:', event);
-            // Use session payload to avoid relying on getUser()/getSession()
-            // which may throw AuthSessionMissingError in some browser contexts.
-            await updateUIForAuth(session?.user ?? null);
+            // Update header only for meaningful transitions.
+            // In some browser contexts multiple auth events may fire around signOut(),
+            // and relying on session?.user can re-add the logout button temporarily.
+            if (event === 'SIGNED_OUT') {
+                await updateUIForAuth(null);
+                return;
+            }
+
             if (event === 'SIGNED_IN') {
+                await updateUIForAuth(session?.user ?? null);
                 showMessage('Добро пожаловать!', 'success');
+                return;
             }
         });
     } else {
